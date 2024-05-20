@@ -1,12 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { useQuery } from 'react-query'
+import { useMutation, useQuery } from 'react-query'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 import { getManagedRestaurant } from '@/api/get-managed-restaurant'
+import { updateProfile } from '@/api/update-profile'
 
 import { Button } from './ui/button'
 import {
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -28,15 +31,36 @@ export function StoreProfileDialog() {
   const { data: managedRestaurant } = useQuery({
     queryKey: ['managed-restaurant'],
     queryFn: getManagedRestaurant,
+    staleTime: Infinity,
   })
 
-  const { register, handleSubmit } = useForm<StoreProfileschema>({
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<StoreProfileschema>({
     resolver: zodResolver(storeProfileSchema),
     values: {
       name: managedRestaurant?.name ?? '',
       description: managedRestaurant?.description ?? '',
     },
   })
+
+  const { mutateAsync: updateProfileFn } = useMutation({
+    mutationFn: updateProfile,
+  })
+
+  async function handleUpdateProfile(data: StoreProfileschema) {
+    try {
+      await updateProfileFn({
+        name: data.name,
+        description: data.description,
+      })
+      toast.success('Profile has been updated.')
+    } catch {
+      toast.error('Something went wrong, try again.')
+    }
+  }
   return (
     <DialogContent>
       <DialogHeader>
@@ -44,7 +68,7 @@ export function StoreProfileDialog() {
         <DialogDescription>Update your infos.</DialogDescription>
       </DialogHeader>
 
-      <form>
+      <form onSubmit={handleSubmit(handleUpdateProfile)}>
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right" htmlFor="name">
@@ -65,10 +89,12 @@ export function StoreProfileDialog() {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" type="button">
-            Cancel
-          </Button>
-          <Button type="submit" variant="success">
+          <DialogClose asChild>
+            <Button variant="ghost" type="button">
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button type="submit" variant="success" disabled={isSubmitting}>
             Save
           </Button>
         </DialogFooter>
