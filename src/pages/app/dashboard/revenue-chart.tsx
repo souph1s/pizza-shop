@@ -47,9 +47,9 @@ export function RevenueChart() {
               tickLine={false}
               width={80}
               tickFormatter={(value: number) =>
-                value.toLocaleString('pr-BR', {
+                value.toLocaleString('pt-BR', {
                   style: 'currency',
-                  currency: 'BRL',
+                  currency: 'USD',
                 })
               }
             />
