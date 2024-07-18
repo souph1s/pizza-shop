@@ -20,5 +20,5 @@ test('update profile successfully', async ({ page }) => {
 
   await page.waitForTimeout(1000)
 
-  await page.getByRole('button', { name: 'Rocket Pizza' }).c
+  expect(page.getByRole('button', { name: 'Rocket Pizza' })).toBeVisible()
 })
